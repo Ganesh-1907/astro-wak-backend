@@ -6,6 +6,8 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import { connectDB } from "./db";
 import paymentRoutes from "./routes/payment.routes";
+import bookingsRoutes from "./routes/bookings.routes";
+import consultationRoutes from "./routes/consultation.routes";
 
 const app = express();
 
@@ -58,7 +60,9 @@ app.get("/", (req, res) => {
   res.send("🚀 Astrology Payment API is running...");
 });
 
-app.use("/api", paymentRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/bookings", bookingsRoutes);
+app.use("/api/consultations", consultationRoutes);
 
 // ------------------------------
 // ⚡ Start Server

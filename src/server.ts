@@ -17,6 +17,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:8080",        // Local development frontend
   "https://astro-wak.vercel.app", // Production frontend (update if needed)
+  "https://astro-wak-frontend.vercel.app"
 ];
 
 app.use(

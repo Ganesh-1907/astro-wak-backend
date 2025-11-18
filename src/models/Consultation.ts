@@ -1,35 +1,35 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IConsultation extends Document {
-  name: string;
-  email: string;
-  phone: string;
+  // name: string;
+  // email: string;
+  // phone: string;
+
   serviceType: string;
-  consultationType?: string;
-  otherName?: string;
-  otherGender?: string;
-  purpose?: string;
-  birthDate: string;
-  birthTime: string;
-  birthPlace: string;
-  additionalInfo?: string;
+  title?: string;
+  price?: number;
+
+  bookingFor: "self" | "other";
+
+  bookingData: Record<string, any>; 
+
   createdAt?: Date;
 }
 
 const ConsultationSchema = new Schema<IConsultation>(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
+    // Basic Details
+    // name: { type: String, required: true },
+    // email: { type: String, required: true },
+    // phone: { type: String, required: true },
+
+    // Service Meta
     serviceType: { type: String, required: true },
-    consultationType: { type: String },
-    otherName: { type: String },
-    otherGender: { type: String },
-    purpose: { type: String },
-    birthDate: { type: String, required: true },
-    birthTime: { type: String, required: true },
-    birthPlace: { type: String, required: true },
-    additionalInfo: { type: String },
+    title: { type: String },
+    price: { type: Number },
+
+    bookingFor: { type: String, required: true },
+    bookingData: { type: Object, required: true },
   },
   { timestamps: true }
 );

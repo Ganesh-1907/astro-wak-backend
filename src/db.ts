@@ -1,17 +1,18 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
-
-if (!MONGODB_URI) {
-  throw new Error("❌ Please define MONGODB_URI in .env file");
-}
-
 export async function connectDB() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error("❌ MONGODB_URI missing");
+
   try {
-    const conn = await mongoose.connect(MONGODB_URI);
+    const conn = await mongoose.connect(uri, { dbName: "astroWak" });
+
+    const db = conn.connection.db;
     console.log(`✅ MongoDB connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error("❌ MongoDB connection failed:", error);
+    console.log(`📦 Using Database: ${db?.databaseName || "unknown"}`);
+
+  } catch (err) {
+    console.error("❌ MongoDB connection failed:", err);
     process.exit(1);
   }
 }

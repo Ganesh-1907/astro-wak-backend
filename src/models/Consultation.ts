@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IConsultation extends Document {
-  // name: string;
-  // email: string;
-  // phone: string;
+  name: string;
+  email: string;
+  phone: string;
 
   serviceType: string;
   title?: string;
@@ -19,9 +19,9 @@ export interface IConsultation extends Document {
 const ConsultationSchema = new Schema<IConsultation>(
   {
     // Basic Details
-    // name: { type: String, required: true },
-    // email: { type: String, required: true },
-    // phone: { type: String, required: true },
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
 
     // Service Meta
     serviceType: { type: String, required: true },

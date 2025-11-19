@@ -10,12 +10,11 @@ const router = express.Router();
  */
 router.get("/", async (req, res) => {
   try {
-    const { search, from, to, sort = "desc" } = req.query;
+    const { search, from, to, sort = "desc", status, serviceType } = req.query;
 
-    // Build query object dynamically
     const query: any = {};
 
-    // 🔍 Search filter (matches multiple fields)
+    // 🔍 Search
     if (search && typeof search === "string") {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
@@ -25,7 +24,7 @@ router.get("/", async (req, res) => {
       ];
     }
 
-    // 📅 Date range filter
+    // 📅 Date Range
     if (from || to) {
       query.createdAt = {};
       if (from) query.createdAt.$gte = new Date(from as string);
@@ -36,10 +35,20 @@ router.get("/", async (req, res) => {
       }
     }
 
-    // 🧾 Sorting (default: newest first)
+    // 🟧 Filter by Consultation Status
+    if (status && status !== "all") {
+      query.consultationStatus = status;
+    }
+
+    // 🟦 Filter by Service Type
+    if (serviceType && serviceType !== "all") {
+      query["bookingData.title"] = serviceType;
+    }
+
+    // 🔽 Sort
     const sortOrder = sort === "asc" ? 1 : -1;
 
-    // 🚀 Fetch filtered + sorted bookings
+    // 🚀 Fetch bookings
     const bookings = await Booking.find(query).sort({ createdAt: sortOrder });
 
     res.status(200).json({
@@ -47,6 +56,7 @@ router.get("/", async (req, res) => {
       count: bookings.length,
       data: bookings,
     });
+
   } catch (error) {
     console.error("❌ Error fetching bookings:", error);
     res.status(500).json({
@@ -55,5 +65,25 @@ router.get("/", async (req, res) => {
     });
   }
 });
+
+
+router.put("/:id/close", async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { consultationStatus: "Closed" },
+      { new: true }
+    );
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    res.json({ success: true, booking });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating status" });
+  }
+});
+
 
 export default router;

@@ -60,6 +60,7 @@ router.post("/verify-payment", async (req: Request, res: Response) => {
       razorpay_signature,
     } = req.body;
 
+    // 🔐 Verify signature
     const sign = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
@@ -75,51 +76,57 @@ router.post("/verify-payment", async (req: Request, res: Response) => {
       email,
       amount,
       amount_paise,
+      bookingData,
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
       status: "PAID",
     });
 
-    // 📧 Send Email using Resend
-    const resend = new Resend(process.env.RESEND_API_KEY);
-
-    await resend.emails.send({
-      from: "Astro Wak <astrowak@resend.dev>",   
-      to: email,
-      subject: "🎉 Payment Confirmation - Astro Wak",
-      html: `
-        <h2>Hi ${name},</h2>
-        <p>Thank you for your payment! Your astrology consultation booking is confirmed.</p>
-
-        <h3>🧾 Payment Details</h3>
-        <ul>
-          <li><strong>Amount:</strong> ₹${amount}</li>
-          <li><strong>Order ID:</strong> ${razorpay_order_id}</li>
-          <li><strong>Payment ID:</strong> ${razorpay_payment_id}</li>
-          <li><strong>Status:</strong> Paid Successfully</li>
-        </ul>
-
-
-    ${renderBookingDetails(bookingData)}
-
-        <p>We look forward to serving you!</p>
-        <p>Best regards,<br><strong>Astro Wak Team</strong></p>
-        <p><strong>Brahma Shri Jaanakiram Garu</strong></p>
-        <p>+91 9553231199 | +91 9441662365</p>
-      `,
-    });
-
-    return res.json({
+    // 🚀 Send success response IMMEDIATELY
+    res.json({
       success: true,
-      message: "Payment verified, booking saved & confirmation email sent",
+      message: "Payment verified & booking saved",
       booking,
     });
+
+    // 📧 Send Email in background (non-blocking)
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    resend.emails
+      .send({
+        from: "Astro Wak <onboarding@resend.dev>", // FIXED
+        to: email,
+        subject: "🎉 Payment Confirmation - Astro Wak",
+        html: `
+          <h2>Hi ${name},</h2>
+          <p>Thank you for your payment! Your astrology consultation booking is confirmed.</p>
+
+          <h3>🧾 Payment Details</h3>
+          <ul>
+            <li><strong>Amount:</strong> ₹${amount}</li>
+            <li><strong>Order ID:</strong> ${razorpay_order_id}</li>
+            <li><strong>Payment ID:</strong> ${razorpay_payment_id}</li>
+            <li><strong>Status:</strong> Paid Successfully</li>
+          </ul>
+
+          ${renderBookingDetails(bookingData)}
+
+          <p>We look forward to serving you!</p>
+          <p>Best regards,<br><strong>Astro Wak Team</strong></p>
+          <p><strong>Brahma Shri Jaanakiram Garu</strong></p>
+          <p>+91 9553231199 | +91 9441662365</p>
+        `,
+      })
+      .then(() => console.log("📧 Email sent"))
+      .catch((err:any) => console.error("❌ Email error:", err));
+
   } catch (error) {
     console.error("❌ Verification error:", error);
     res.status(500).json({ error: "Payment verification failed" });
   }
 });
+
 
 
 export default router;

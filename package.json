@@ -18,7 +18,8 @@
     "express": "^5.1.0",
     "mongoose": "^8.19.3",
     "nodemailer": "^7.0.10",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "resend": "^6.5.0"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.6",

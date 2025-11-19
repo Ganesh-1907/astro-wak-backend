@@ -2,8 +2,9 @@ import express from "express";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import Booking from "../models/Booking";
-import nodemailer from "nodemailer";
 import { Request, Response } from "express";
+// @ts-ignore: 'resend' provides .mts types that don't resolve under current moduleResolution; use require to avoid the type-check error
+const { Resend } = require("resend");
 
 const router = express.Router();
 
@@ -48,66 +49,58 @@ router.post("/verify-payment", async (req: Request, res: Response) => {
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
-    if (sign === razorpay_signature) {
-      // 💾 Save booking in DB
-      const booking = await Booking.create({
-        name,
-        email,
-        amount,
-        amount_paise,
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-        status: "PAID",
-      });
-
-      // 📧 Send confirmation email
-      const transporter = nodemailer.createTransport({
-        service: "gmail", // or use "smtp.mailtrap.io" for testing
-        auth: {
-          user: process.env.SMTP_USER!,
-          pass: process.env.SMTP_PASS!,
-        },
-      });
-
-      const mailOptions = {
-        from: `"Astro Wak Team" <${process.env.SMTP_USER!}>`,
-        to: email,
-        subject: "🎉 Payment Confirmation - Astro Wak",
-        html: `
-          <h2>Hi ${name},</h2>
-          <p>Thank you for your payment! Your astrology consultation booking is confirmed.</p>
-
-          <h3>🧾 Payment Details</h3>
-          <ul>
-            <li><strong>Amount:</strong> ₹${amount}</li>
-            <li><strong>Order ID:</strong> ${razorpay_order_id}</li>
-            <li><strong>Payment ID:</strong> ${razorpay_payment_id}</li>
-            <li><strong>Status:</strong> Paid Successfully</li>
-          </ul>
-
-          <p>We look forward to serving you!</p>
-          <p>Best regards,<br><strong>Astro Wak Team</strong></p>
-          <p><strong>Brahma Shri Jaanakiram Garu</strong></p>
-          <p>+91 9553231199 | +91 9441662365</p>
-        `,
-      };
-
-      // send the email
-      // await transporter.sendMail(mailOptions);
-
-      return res.json({
-        success: true,
-        message: "Payment verified, booking saved & confirmation email sent",
-        booking,
-      });
-    } else {
+    if (sign !== razorpay_signature) {
       return res.status(400).json({ success: false, message: "Invalid signature" });
     }
+
+    // 💾 Save booking in DB
+    const booking = await Booking.create({
+      name,
+      email,
+      amount,
+      amount_paise,
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      status: "PAID",
+    });
+
+    // 📧 Send Email using Resend
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    await resend.emails.send({
+      from: "Astro Wak <astrowak@resend.dev>",   
+      to: email,
+      subject: "🎉 Payment Confirmation - Astro Wak",
+      html: `
+        <h2>Hi ${name},</h2>
+        <p>Thank you for your payment! Your astrology consultation booking is confirmed.</p>
+
+        <h3>🧾 Payment Details</h3>
+        <ul>
+          <li><strong>Amount:</strong> ₹${amount}</li>
+          <li><strong>Order ID:</strong> ${razorpay_order_id}</li>
+          <li><strong>Payment ID:</strong> ${razorpay_payment_id}</li>
+          <li><strong>Status:</strong> Paid Successfully</li>
+        </ul>
+
+        <p>We look forward to serving you!</p>
+        <p>Best regards,<br><strong>Astro Wak Team</strong></p>
+        <p><strong>Brahma Shri Jaanakiram Garu</strong></p>
+        <p>+91 9553231199 | +91 9441662365</p>
+      `,
+    });
+
+    return res.json({
+      success: true,
+      message: "Payment verified, booking saved & confirmation email sent",
+      booking,
+    });
   } catch (error) {
     console.error("❌ Verification error:", error);
     res.status(500).json({ error: "Payment verification failed" });
   }
 });
+
 
 export default router;

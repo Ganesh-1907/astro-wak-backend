@@ -8,6 +8,21 @@ const { Resend } = require("resend");
 
 const router = express.Router();
 
+function renderBookingDetails(data: any) {
+  let html = "<h3>📌 Booking Details</h3><ul>";
+
+  Object.keys(data.allFields).forEach((key) => {
+    if (!data.allFields[key]) return;
+    html += `<li><strong>${key}:</strong> ${data.allFields[key]}</li>`;
+  });
+
+  html += `<li><strong>Booking For:</strong> ${data.bookingFor}</li>`;
+  html += `<li><strong>Service:</strong> ${data.title}</li>`;
+  html += "</ul>";
+
+  return html;
+}
+
 // 🧾 Create Razorpay Order
 router.post("/create-order", async (req: Request, res: Response) => {
   try {
@@ -39,6 +54,7 @@ router.post("/verify-payment", async (req: Request, res: Response) => {
       email,
       amount,
       amount_paise,
+      bookingData,
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
@@ -83,6 +99,9 @@ router.post("/verify-payment", async (req: Request, res: Response) => {
           <li><strong>Payment ID:</strong> ${razorpay_payment_id}</li>
           <li><strong>Status:</strong> Paid Successfully</li>
         </ul>
+
+
+    ${renderBookingDetails(bookingData)}
 
         <p>We look forward to serving you!</p>
         <p>Best regards,<br><strong>Astro Wak Team</strong></p>

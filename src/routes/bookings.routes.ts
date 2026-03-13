@@ -66,6 +66,31 @@ router.get("/", async (req, res) => {
   }
 });
 
+/**
+ * ✅ GET single booking by ID
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      data: booking,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching booking:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching booking details",
+    });
+  }
+});
+
 
 router.put("/:id/close", async (req, res) => {
   try {

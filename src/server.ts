@@ -8,6 +8,7 @@ import { connectDB } from "./db";
 import paymentRoutes from "./routes/payment.routes";
 import bookingsRoutes from "./routes/bookings.routes";
 import consultationRoutes from "./routes/consultation.routes";
+import authRoutes from "./routes/auth.routes";
 
 const app = express();
 
@@ -15,7 +16,9 @@ const app = express();
 // ✅ Configure CORS (Fix for Render + Frontend)
 // ------------------------------
 const allowedOrigins = [
-  "http://localhost:8080",        // Local development frontend
+  "http://localhost:8080",        // Local development (Main)
+  "http://localhost:5173",        // Local development (Admin)
+  "http://localhost:5174",        // Local development (Admin fallback)
   "https://astro-wak.vercel.app", // Production frontend (update if needed)
   "https://astro-wak-frontend.vercel.app"
 ];
@@ -64,6 +67,7 @@ app.get("/", (req, res) => {
 app.use("/api/payments", paymentRoutes);
 app.use("/api/bookings", bookingsRoutes);
 app.use("/api/consultations", consultationRoutes);
+app.use("/api/auth", authRoutes);
 
 // ------------------------------
 // ⚡ Start Server

@@ -15,13 +15,9 @@ const app = express();
 // ------------------------------
 // ✅ Configure CORS (Fix for Render + Frontend)
 // ------------------------------
-const allowedOrigins = [
-  "http://localhost:8080",        // Local development (Main)
-  "http://localhost:5173",        // Local development (Admin)
-  "http://localhost:5174",        // Local development (Admin fallback)
-  "https://astro-wak.vercel.app", // Production frontend (update if needed)
-  "https://astro-wak-frontend.vercel.app"
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : [];
 
 app.use(
   cors({
@@ -72,7 +68,7 @@ app.use("/api/auth", authRoutes);
 // ------------------------------
 // ⚡ Start Server
 // ------------------------------
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT; // No fallback here
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
